@@ -265,3 +265,23 @@ ansible-vault edit <playbook name> #for editing vault playbook
 ansible-vault encrypt <playbook name> #for encrypting and vault the exisiting playbook
 ansible-vault decrypt <playbook name> #for decrypting the playbook
 ansible-vault rekey <playbook name> #for changing password of vault playbook
+
+#Role concept in ansible (Role is basically distributing one large playbook into small directories)
+playbook folder (folder name must be playbook only)
+Inside playbook folder, create master.yml file and folder roles (here also filename and folder name must be same as its mentioned)
+Inside roles folder create one folder with any name (example ansiblehosts)
+Inside ansiblehosts folder, create different folders with name tasks, vars, handlers (folder names must be same as its mentioned)
+Inside every folder i.e tasks, vars, handlers. Create main.yml file and write the code in every main.yml according to the requirement
+Inside playbook folder,  write the code in master.yml file as per the requirement
+Run the master.yml file by being the present director that is playbook directory with ansible-playbook master.yml command
+
+playbook
+- master.yml
+- roles
+	- ansiblehosts
+		- tasks
+			- main.yml
+		- vars 
+			- main.yml
+		- handlers
+			- main.yml
