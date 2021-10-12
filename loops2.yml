@@ -1,0 +1,19 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: deleteing multiple users in ansiblehosts
+            action: user name='{{item}}' state=absent
+            with_items:
+                    - Faizan
+                    - Saqib
+                    - Rehan
+
+          - name: uninstalling multiple software in ansiblehosts
+            action: yum name='{{item}}' state=absent
+            with_items:
+                    - httpd
+                    - git
+                    - tree

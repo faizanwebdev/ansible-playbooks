@@ -1,0 +1,8 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: Uninstalling or removing tree software from ansiblehosts
+            action: yum name=tree state=absent

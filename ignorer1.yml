@@ -1,0 +1,13 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: Uninstalling httpd software from ansiblehosts
+            action: yum name=httpd state=absent
+            ignore_errors: yes
+
+          - name: Uninstalling tree software from ansiblehosts
+            action: yum name=tree state=absent
+            ignore_errors: yes

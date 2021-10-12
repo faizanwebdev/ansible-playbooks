@@ -1,0 +1,13 @@
+--- #trying ignore error option
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: Installing httpd software on ansbilehosts
+            action: yum name=httpd state=present
+            ignore_errors: yes
+
+          - name: Installig tree software on ansiblehosts
+            action: yum name=tree state=present
+            ignore_errors: yes

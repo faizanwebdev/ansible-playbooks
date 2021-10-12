@@ -1,0 +1,8 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: Installing tree software in ansiblehosts
+            action: yum name=tree state=present

@@ -1,0 +1,8 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: creating directory
+            file: path=/home/ansible-user/faizandir state=directory

@@ -1,0 +1,13 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: installing apache on debian os
+            command: apt-get install apache -y
+            when: ansible_os_family == "Debian"
+
+          - name: installing apache on redhat os
+            command: yum install httpd -y
+            when: ansible_os_family == "RedHat"

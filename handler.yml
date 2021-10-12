@@ -1,0 +1,18 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  vars:
+          pkgname: httpd
+
+  tasks:
+          - name: Installing httpd software in ansiblehosts
+            action: yum name='{{pkgname}}' state=present
+            ignore_errors: yes
+            notify: start httpd service
+
+  handlers:
+          - name: start httpd service
+            action: service name='{{pkgname}}' state=started
+            ignore_errors: yes

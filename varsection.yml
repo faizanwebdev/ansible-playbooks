@@ -1,0 +1,25 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  vars:
+          pkgname1: httpd
+          pkgname2: mysql
+
+  tasks:
+          - name: Installing httpd on ansiblehosts
+            action: yum name='{{pkgname1}}' state=present
+            ignore_errors: yes
+
+          - name: Installing mysql on ansiblehosts
+            action: yum name='{{pkgname2}}' state=present
+            ignore_errors: yes
+
+          - name: Uninstalling httpd on ansiblehosts
+            action: yum name='{{pkgname1}}' state=absent
+            ignore_errors: yes
+
+          - name: Uninstalling mysql on ansiblehosts
+            action: yum name='{{pkgname2}}' state=absent
+            ignore_errors: yes

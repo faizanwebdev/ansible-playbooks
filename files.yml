@@ -1,0 +1,11 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: creating file
+            file: path=/home/ansible-user/faizanfile11.txt state=touch
+
+          - name: copying file from server to host
+            copy: src=/home/ansible-user/faizanfile dest=/home/ansible-user

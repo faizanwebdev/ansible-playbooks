@@ -1,0 +1,19 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: creating multiple users on ansiblehosts
+            action: user name='{{item}}' state=present
+            with_items:
+                    - Faizan
+                    - Saqib
+                    - Rehan
+
+          - name: installing multiple software on ansiblehosts
+            action: yum name='{{item}}' state=present
+            with_items:
+                    - httpd
+                    - tree
+                    - git

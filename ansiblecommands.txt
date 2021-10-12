@@ -1,0 +1,267 @@
+Ansible Installation(Installation to be done on ansible server machine only and not on host machine)
+
+yum install wget -y #install wget package if it not there
+wget https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm #download epel package repository from internet
+yum install epel-release-latest-7.noarch.rpm -y #install the epel package
+yum update -y #update the OS for updating the packages and dependency files
+yum install git python python-pip python-devel openssl ansible -y #install these packages(ansible is main package and rest all other are dependency package for ansible as ansible is developed using python)
+
+After installation, in /etc/ansible folder ansible config file and host file will be created
+Open the ansible.cfg file and uncomment inventory line and sudo user line and save the file
+Open the hosts file and add the host machines IP address or create the group and add host machines IP addresses
+
+#Linux Administration commands
+
+useradd <username> #command to add new user. NOTE: for ansible operations, the username of ansible server machine and ansible host machine should be same
+passwd <username> #to set password of the specific user
+
+#give root user privileges to ansible user on ansible server machine as well as on ansible host machine
+for giving root user privileges, linux system have sudoers files in which multiple user can work on that single file at onetime which can create a huge conflict
+so redhat company has created a new file called as visudo file for resolving this problem as only one user can work on this file at a time
+
+#open visudo file and add the ansible user inside it and give all root user privileges
+<ansible username> ALL=(ALL) NOPASSWD: ALL
+
+#for creating ssh connection we have to first enable the password authentication to yes and permitrootlogin to yes with uncommenting
+inside the file /etc/ssh/sshd_confg in all machines that is server as well as host
+without enable authentication it will give permission denied error
+
+#after enable authentication, by default behaviour will be to enter password everytime for connection making between server and host
+so we have to generate ssh key in server machine to make trustable connection with host machine by copying public key in host machine ssh folder
+
+For making connection from server machine to host machine we will ssh connection
+ssh username@IPaddress (example ssh ansible@171.41.32.1) #command for making ssh connection
+
+ssh key generation command below:
+ssh-keygen 
+
+After ssh key generation we have to copy public key from server machine to host machine using below command:
+ssh-copy-id username@IPaddress
+
+#ansible commands
+
+ansible --version #to check ansible version and information
+ansible all --list-hosts #to check all host connected to ansible server machine in ansible configuration file
+ansible <groupname> --list-hosts #to check all host connected of specific group  to ansible server machine
+ansible <groupname>[n:n] --list-hosts #to check host connected of specific group with index number to ansible server machine
+examples below:
+ansible webserver[0] --list-hosts
+ansible webserver[1] --list-hosts
+ansible webserver[-1] --list-hosts
+ansible webserver[0:2] --list-hosts
+ansible webserver[0]:dbserver[1] --list-hosts
+
+#ansible adhoc commands
+ansible <groupname> -a "Normal linux commands" #where groupname can groupname or a single host or IP and -a is arbitary mode as arbitary command and under quotes can be any linux commands
+ansible ansiblehosts -a "ls -la"
+ansible ansiblehosts[0] -a "touch faizanfile"
+ansible ansiblehosts[1] -a "sudo yum install tree -y" #to install software as sudo user we have to enter sudo
+If we dont want to insert sudo before the linux commands then below is the command
+ansible ansiblehosts -b -a "yum install httpd -y" #where -b denotes become sudo user and -a is arbitary command
+ansible ansiblehosts -b -a "which httpd" or -a "sudo which httpd"
+ansible ansiblehost -b -a "yum remove httpd -y"
+
+#ansible single module commands
+ansible ansiblehosts -b -m yum -a "pkg=httpd state=present" #(this command will install httpd software as state as present)where b denotes to become root, -m denotes as module, yum is module, -a is arbitary command, pkg is package package or software name, state is state whether to install or update or remove software or stop or start or restart service
+ansible ansiblehosts -b -m yum -a "pkg=httpd state=latest" #this command will update the httpd software to latest version
+ansible ansiblehosts -b -m yum -a "pkg=httpd state=absent" #this command will remove or uninstall httpd software
+ansible ansiblehosts -b -m service -a "name=httpd state=started" #this command will start the httpd service, where service is module, -m denotes as module, name is service name, state is service state as started or restarted or stopped
+ansible ansiblehosts -b -m user -a "name=username state=present" #this command will create or add new user, where user is module
+ansible ansiblehosts -b -m yum -a "pkg=httpd" #this command will install httpd, here we have not mention state as by default state is to be install(present) for packages, for user by default state is to create(present) for user, for service by default state is to start(started), for file or folder by default state is to create(present)
+ansible ansiblehosts -b -m copy -a "src=(path with file) dest=(destination path)" #this command will copy file from server machine to host machines
+
+#ansible playboook commands (using YAML language)
+playbooks will be create using yaml language so so playbook file extensions will be .yaml or .yml
+
+vi targetsection.yml
+---
+- hosts: ansiblehosts #this has to be host machine as single user or IP or group name
+  user: ansible-user	#ansible user name created on host machine
+  become: yes #become sudo user
+  connection: ssh #making connection via ssh
+
+#yaml file execution or running ansible playbook:
+ansible-playbook targetsection.yml #command for running ansible playbook using yaml file
+
+below playbook to display working of task section
+vi tasksection.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+       		- name: Installing httpd on ansiblehosts
+		  action: yum name=httpd state=installed or present
+
+ansible-playbook tasksection.yml
+
+below playbook to display working of ignorerror feature
+vi ignorerror.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+       		- name: Installing httpd on ansiblehosts
+		  action: yum name=httpd state=installed or present
+		  ignore_errors: yes
+		
+		- name: Installing mysql on ansiblehosts
+		  action: yum name=httpd state=installed or present
+		  ignore_errors: yes
+
+below playbook to display working of variables section
+vi vars.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: yes
+  vars:
+		pkgname1: httpd
+		pkgname2: mysql
+  
+  tasks:
+		- name: Installing httpd on ansiblehosts
+		  action: yum name='{{pkgname1}}' state=installed or present
+		  ignore_errors: yes
+
+		-  name: Installing mysql on ansiblehosts
+		   action: yum name='{{pkgname2}}' state=installed or present
+
+below playbook to display working of handler section
+vi handle.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  vars:
+		pkgname: httpd
+  tasks:
+		- name: Installing httpd software on ansiblehost
+		  action: yum name='{{pkgname}}' state=present or installed
+		  ignore_error: yes
+		  notify: start httpd service
+
+  handlers:
+		- name: start httpd service
+		  action: service name='{{pkgname}}' state=started
+		  ignore_errors: yes
+
+#ansible commands
+ansible-playbook <playbook file> --check #for dry run of commands to see what exactly it will do when it will be executed
+
+#loops in ansible
+below playbook will display the loops feature in ansible playbook
+
+vi loops1.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: creating multiple user
+	  action: user name='{{item}}' state=present
+	  with_items:
+		- Faizan
+		- Saqib
+		- Rehan
+
+	- name: installing multiple software
+	  action: yum name='{{item}}' state=present
+	  with_items:
+		- httpd
+		- tree
+		- git
+
+vi loops2.yml
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: deleting multiple users
+	  action: user name='{{item}}' state=absent
+	  with_items:
+		- Faizan
+		- Saqib
+		- Rehan
+
+	- name: uninstalling multiple software
+	  action: yum name='{{item}}' state=absent
+	  with_items:
+		- httpd
+		- tree
+		- git
+
+Below playbook will display the conditional feature of ansbile playbook
+vi conditionals.yml #using adhoc command
+
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: Installing apache for debian family
+	  command: apt-get install apache2 -y
+	  when: ansible_os_family == "Debian"
+
+	- name: Installing apache for redhat family
+	  command: yum install httpd -y
+	  when: ansible_os_family == "RedHat"
+
+vi conditionals1.yml #using module
+
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: uninstalling apache for debian family
+	  action: apt-get name=apache2 state=absent
+	  when: ansible_os_family == "Debian"
+
+	- name: uninstalling apache for redhat family
+	  action: yum name=httpd state=absent
+	  when: ansible_os_family == "RedHat"
+
+#creating files on host machine using playbook
+vi files.yml
+
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: create file using playbook
+	  file: path=/home/ansible-user/demofile1.txt state=file
+
+	- name: copying file from server machine to host machine using playbook
+	  copy: src=/home/ansible-user/faizanfile dest=/home/ansible-user
+
+#creating directory on host machine using playbook
+vi directory.yml
+
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+	- name: creating directory using playbook
+	  file: path/home/ansible-user/faizandir state=directory
+
+#Vault concenpt in ansible (that is encrypting the playbook file and also add password protection to playbook file)
+ansible-vault create <playbook name> #for creating new playbook with vault
+ansible-vault edit <playbook name> #for editing vault playbook
+ansible-vault encrypt <playbook name> #for encrypting and vault the exisiting playbook
+ansible-vault decrypt <playbook name> #for decrypting the playbook
+ansible-vault rekey <playbook name> #for changing password of vault playbook

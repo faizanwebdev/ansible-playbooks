@@ -1,0 +1,21 @@
+---
+- hosts: ansiblehosts
+  user: ansible-user
+  become: yes
+  connection: ssh
+  tasks:
+          - name: installing apache on debian os
+            action: apt-get name=apache2 state=present
+            when: ansible_os_family == "Debian"
+
+          - name: installing apache on redhat os
+            action: yum name=httpd state=present
+            when: ansible_os_family == "RedHat"
+
+          - name: uninstalling apache on debian os
+            action: apt-get name=apache2 state=absent
+            when: ansible_os_family == "Debian"
+
+          - name: uininstalling apache on redhat os
+            action: yum name=httpd state=absent
+            when: ansible_os_family == "RedHat"
